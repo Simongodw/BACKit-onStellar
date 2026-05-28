@@ -7,6 +7,9 @@ mod events;
 mod storage;
 mod types;
 
+#[cfg(test)]
+mod test;
+
 use events::*;
 use storage::*;
 use types::*;
@@ -142,13 +145,13 @@ impl CallRegistry {
         // uncomment in the future if the rule changes.
         match stake_position {
             StakePosition::Up => {
-                let _current_stake = call.up_stakes.get(staker.clone()).unwrap_or(0);
-                // call.up_stakes.set(staker.clone(), _current_stake + amount);
+                let current_stake = call.up_stakes.get(staker.clone()).unwrap_or(0);
+                call.up_stakes.set(staker.clone(), current_stake + amount);
                 call.total_up_stake += amount;
             }
             StakePosition::Down => {
-                let _current_stake = call.down_stakes.get(staker.clone()).unwrap_or(0);
-                // call.down_stakes.set(staker.clone(), _current_stake + amount);
+                let current_stake = call.down_stakes.get(staker.clone()).unwrap_or(0);
+                call.down_stakes.set(staker.clone(), current_stake + amount);
                 call.total_down_stake += amount;
             }
         }

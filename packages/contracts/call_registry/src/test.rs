@@ -1,6 +1,18 @@
 #![cfg(test)]
 
-use soroban_sdk::{testutils::Events, Vec, Address, Env, IntoVal, Symbol, Bytes, String as SorobanString};
+use soroban_sdk::{
+    contract, contractimpl,
+    testutils::{Address as _, Events as _, Ledger as _},
+    Vec, Address, Env, IntoVal, Symbol, Bytes, String as SorobanString
+};
+
+#[contract]
+pub struct MockToken;
+
+#[contractimpl]
+impl MockToken {
+    pub fn transfer(_env: Env, _from: Address, _to: Address, _amount: i128) {}
+}
 
 mod call_registry {
     use super::*;
@@ -45,8 +57,8 @@ fn test_set_admin_emits_admin_params_changed() {
  
     // Topic: ("call_registry", "admin_params_changed")
     assert_eq!(
-        last.0,
-        vec![
+        last.1,
+        soroban_sdk::vec![
             &env,
             "call_registry".into_val(&env),
             "admin_params_changed".into_val(&env),
@@ -55,7 +67,7 @@ fn test_set_admin_emits_admin_params_changed() {
  
     // First element of the payload tuple is the param discriminant
     let (param, _changed_by, old_val, new_val): (Symbol, Address, Address, Address) =
-        last.1.into_val(&env);
+        last.2.into_val(&env);
  
     assert_eq!(param, Symbol::new(&env, "admin"));
     assert_eq!(old_val, old_admin);
@@ -85,7 +97,7 @@ fn test_set_outcome_manager_emits_admin_params_changed() {
     let last = events.last().expect("no events");
  
     let (param, _changed_by, old_val, new_val): (Symbol, Address, Address, Address) =
-        last.1.into_val(&env);
+        last.2.into_val(&env);
  
     assert_eq!(param, Symbol::new(&env, "outcome_manager"));
     assert_eq!(old_val, old_om);
@@ -113,7 +125,7 @@ fn test_set_fee_emits_admin_params_changed() {
     let last = events.last().expect("no events");
  
     let (param, _changed_by, old_val, new_val): (Symbol, Address, u32, u32) =
-        last.1.into_val(&env);
+        last.2.into_val(&env);
  
     assert_eq!(param, Symbol::new(&env, "fee_bps"));
     assert_eq!(old_val, 0_u32);   // default set in initialize()
@@ -143,6 +155,7 @@ fn test_set_fee_above_max_panics() {
 
     fn create_test_env() -> (Env, Address, Address, Address) {
         let env = Env::default();
+        env.mock_all_auths();
         let admin = Address::generate(&env);
         let outcome_manager = Address::generate(&env);
         let creator = Address::generate(&env);
@@ -187,7 +200,7 @@ fn test_set_fee_above_max_panics() {
         env.ledger().set_timestamp(1000);
 
         // Create call
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -223,7 +236,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -249,7 +262,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -276,7 +289,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -313,7 +326,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -350,7 +363,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -383,7 +396,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -411,7 +424,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -459,7 +472,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -499,7 +512,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -535,7 +548,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -599,7 +612,7 @@ fn test_set_fee_above_max_panics() {
 
         assert_eq!(client.get_call_count(), 0);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -638,7 +651,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
@@ -678,7 +691,7 @@ fn test_set_fee_above_max_panics() {
         client.initialize(&admin, &outcome_manager);
         env.ledger().set_timestamp(1000);
 
-        let stake_token = Address::generate(&env);
+        let stake_token = env.register_contract(None, MockToken);
         let token_address = Address::generate(&env);
         let pair_id = Bytes::from_slice(&env, b"USDC/XLM");
         let ipfs_cid = Bytes::from_slice(&env, b"QmXxxx");
