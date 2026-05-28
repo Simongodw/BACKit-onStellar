@@ -10,6 +10,9 @@ mod types;
 #[cfg(test)]
 mod test;
 
+#[cfg(test)]
+mod fuzz_tests;
+
 use events::*;
 use storage::*;
 use types::*;
